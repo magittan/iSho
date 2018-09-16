@@ -6,6 +6,7 @@
     <div id="right-overlay">
       <p id="p1">Click a node!</p>
       <p id="p2"> </p>
+      <button onclick="swap()">Mis</button>
     </div>
     <img id="logo" src = "/iSho_logo.png" alt="iSho">
   </div>
@@ -49,7 +50,9 @@
 
 <script>
 
-const width = window.innerWidth
+  function load(url){
+    document.querySelector('svg').innerHTML="";
+    const width = window.innerWidth
 const height = window.innerHeight
 const svg = d3.select('svg')
   .attr('width', width)
@@ -66,7 +69,7 @@ var simulation = d3.forceSimulation()
     .force("charge", d3.forceManyBody().strength(-5))
     .force("center", d3.forceCenter(width / 2, height / 2));
 
-d3.json("modified_peers.json", function(error, graph) {
+d3.json(url, function(error, graph) {
   if (error) throw error;
 
   var link = svg.append("g")
@@ -271,5 +274,22 @@ function dragended(d) {
 var fisheye = d3.fisheye.circular()
     .radius(100)
     .distortion(2);
+  }
+  lists = ['modified_peers.json', 'miserables.json', 'peers.json']
+  btnTexts = ['DJI', 'NAS', 'S&P'];
+  let curr=-1;
 
+  function swap(){
+    curr++;
+    curr%=lists.length;
+    load(lists[curr]);
+    document.querySelector('button').innerText=btnTexts[curr];
+    setTimeout(function(){
+    let texts = document.querySelectorAll('text');
+    for(let i=0;i<texts.length;i++){
+      texts[i].style.pointerEvents='none';
+    }
+    }, 1000)
+  }
+  swap();
 </script>
