@@ -3,34 +3,13 @@
 
 <body>
   <div class = "follow-scroll">
-    <p id="p1">Hello World!</p>
+    <div id="right-overlay">
+      <p id="p1">Click a node!</p>
+      <p id="p2"> </p>
+    </div>
     <img id="logo" src = "/iSho_logo.png" alt="iSho">
   </div>
 </body>
-
-<!--
-<script>
-(function($) {
-    var element = $('.follow-scroll'),
-        originalY = element.offset().top;
-
-    // Space between element and top of screen (when scrolling)
-    var topMargin = 20;
-
-    // Should probably be set in CSS; but here just for emphasis
-    element.css('position', 'relative');
-
-    $(window).on('scroll', function(event) {
-        var scrollTop = $(window).scrollTop();
-
-        element.stop(false, false).animate({
-            top: scrollTop < originalY
-                    ? 0
-                    : scrollTop - originalY + topMargin
-        }, 300);
-    });
-})(jQuery);
-</script> -->
 
 <style>
 #logo{
@@ -39,19 +18,19 @@
   left: 20px;
 }
 
-#p1{
+#right-overlay{
   position: fixed;
   top: 20px;
   right: 20px;
   width: 200px;
-  height: 300px;
+  height: 100px;
   border: 1px solid black;
   border-radius: 5px;
   padding: 5px;
   text-align: center;
   box-shadow: 2px 2px 4px #0004;
   background: white;
-  font-family: Arial;
+  font-family: system-ui;
 }
 
 .links line {
@@ -115,7 +94,7 @@ d3.json("modified_peers.json", function(error, graph) {
       .enter().append('text')
         .text(function(d) { return d.label; })
         .attr('font-size', 11)
-        .attr('font-family',"Arial")
+        .attr('font-family',"system-ui")
         .attr('dx', 15)
         .attr('dy', 4)
 
@@ -161,7 +140,8 @@ d3.json("modified_peers.json", function(error, graph) {
   // }
 
   function selectNode(selectedNode) {
-    document.getElementById("p1").innerHTML = selectedNode.label;
+    document.getElementById("p1").innerHTML = "Ticker: " + selectedNode.label;
+    document.getElementById("p2").innerHTML = "Degrees: " + selectedNode.r;
   }
   node.on('click', selectNode)
 
