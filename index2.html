@@ -6,9 +6,12 @@
     <div id="right-overlay">
       <p id="p1">Click a node!</p>
       <p id="p2"> </p>
+      <
       <button onclick="swap()">Mis</button>
     </div>
     <img id="logo" src = "/iSho_logo.png" alt="iSho">
+    <div id="keys">
+    </div>
   </div>
 </body>
 
@@ -17,6 +20,11 @@
   position: fixed;
   top: 20px;
   left: 20px;
+}
+.hex {
+  height: 16px;
+  width: 16px;
+  border: 1px solid black;
 }
 
 #right-overlay{
@@ -34,6 +42,16 @@
   font-family: system-ui;
 }
 
+#keys {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 200px;
+  padding: 5px;
+  text-align: center;
+  font-family: system-ui;
+}
+
 .links line {
   stroke: #999;
   stroke-opacity: 0.6;
@@ -45,12 +63,12 @@
 }
 
 </style>
-<svg width="960" height="600"></svg>
+<svg width="1920" height="1080"></svg>
 <script src="https://d3js.org/d3.v4.min.js"></script>
 
 <script>
 
-  function load(url){
+function load(url){
     document.querySelector('svg').innerHTML="";
     const width = window.innerWidth
 const height = window.innerHeight
@@ -72,6 +90,8 @@ var simulation = d3.forceSimulation()
 d3.json(url, function(error, graph) {
   if (error) throw error;
 
+  let added = []
+
   var link = svg.append("g")
       .attr("class", "links")
     .selectAll("line")
@@ -85,7 +105,20 @@ d3.json(url, function(error, graph) {
     .data(graph.nodes)
     .enter().append("circle")
       .attr("r", function(d) { return Math.sqrt(d.r); })
-      .attr("fill", function(d) { return color(d.group); })
+      .attr("fill", function(d) { 
+        let exists = false;
+        for(let i = 0; i<added.length;i++){
+          if(d.group == added[i])
+            exists=true;
+        }
+        if(!exists){
+          added.push(d.group)
+          document.querySelector('#keys').innerHTML+=
+          "<table><tr><td><div class='hex' style='background:"+color(d.group)+"'></td><td>" + graph.sector_names[d.group]+ 
+          "</td></tr></table>";
+        }
+        return color(d.group); 
+      })
       .call(d3.drag()
           .on("start", dragstarted)
           .on("drag", dragged)
@@ -286,6 +319,7 @@ var fisheye = d3.fisheye.circular()
     document.querySelector('button').innerText=btnTexts[curr];
     document.querySelector('#p1').innerText="Click a node!";
     document.querySelector('#p2').innerText=" ";
+    document.querySelector('#keys').innerText=" ";
     setTimeout(function(){
     let texts = document.querySelectorAll('text');
     for(let i=0;i<texts.length;i++){
