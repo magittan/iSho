@@ -284,6 +284,8 @@ var fisheye = d3.fisheye.circular()
     curr%=lists.length;
     load(lists[curr]);
     document.querySelector('button').innerText=btnTexts[curr];
+    document.querySelector('#p1').innerText="Click a node!";
+    document.querySelector('#p2').innerText=" ";
     setTimeout(function(){
     let texts = document.querySelectorAll('text');
     for(let i=0;i<texts.length;i++){
