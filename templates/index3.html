@@ -41,8 +41,8 @@
 
 #right-overlay{
   position: fixed;
-  top: 200px;
-  left: 20px;
+  top: 20px;
+  right: 20px;
   width: 200px;
   height: 100px;
   border: 1px solid black;
@@ -194,7 +194,7 @@ d3.json(url, function(error, graph) {
   function selectNode(selectedNode) {
     document.getElementById("p1").innerHTML = "Ticker: " + selectedNode.label;
     document.getElementById("p2").innerHTML = "Degrees: " + selectedNode.r;
-    document.getElementById("p3").innerHTML = "Industry: " + selectedNode.group
+    //document.getElementById("p3").innerHTML = "Industry: " + selectedNode.group
   }
   node.on('click', selectNode)
 
@@ -325,8 +325,8 @@ var fisheye = d3.fisheye.circular()
     .radius(100)
     .distortion(2);
   }
-  lists = ['static/modified_peers.json', 'static/m3dji.json', 'static/m6nas.json']
-  btnTexts = ['DJI', 'NAS', 'S&P 500'];
+  lists = ['static/modified_peers.json', 'static/m9dji.json', 'static/m6nas.json']
+  btnTexts = ['DJI', 'NAS', 'S&P'];
   let curr=-1;
 
   function swap(){
@@ -337,7 +337,7 @@ var fisheye = d3.fisheye.circular()
     document.querySelector('#ind').innerText=btnTexts[(curr + 5) % 3];
     document.querySelector('#p1').innerText="Click a node!";
     document.querySelector('#p2').innerText=" ";
-    document.querySelector('#p3').innerText=" ";
+    //document.querySelector('#p3').innerText=" ";
     document.querySelector('#keys').innerText=" ";
     setTimeout(function(){
     let texts = document.querySelectorAll('text');
