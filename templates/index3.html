@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<body>
+  <div class = "follow-scroll">
+    <div id="right-overlay">
+      <p id="p1">Click a node!</p>
+      <!--<p id="p3"> </p>-->
+      <p id="p2"> </p>
+      <button onclick="swap()">Mis</button>
+    </div>
+    <h1 id="ind"> </h1>
+    <img id="logo" src = "static/iSho_logo.png" alt="iSho">
+    <div id="keys">
+    </div>
+  </div>
+</body>
+
+<style>
+#ind {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  width: 200px;
+  padding: 5px;
+  text-align: center;
+  font-family: system-ui;
+  font-size:80px;
+}
+
+#logo{
+  position: fixed;
+  top: 20px;
+  left: 20px;
+}
+.hex {
+  height: 16px;
+  width: 16px;
+  border: 1px solid black;
+}
+
+#right-overlay{
+  position: fixed;
+  top: 200px;
+  left: 20px;
+  width: 200px;
+  height: 100px;
+  border: 1px solid black;
+  border-radius: 5px;
+  padding: 5px;
+  text-align: center;
+  box-shadow: 2px 2px 4px #0004;
+  background: white;
+  font-family: system-ui;
+}
+
+#keys {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 200px;
+  padding: 5px;
+  text-align: center;
+  font-family: system-ui;
+}
+
+.links line {
+  stroke: #999;
+  stroke-opacity: 0.6;
+}
+
+.nodes circle {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+</style>
+<svg width="1920" height="1080"></svg>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+
+<script>
+
+
+function load(url){
+
+    document.querySelector('svg').innerHTML="";
+    const width = window.innerWidth
+const height = window.innerHeight
+const svg = d3.select('svg')
+  .attr('width', width)
+  .attr('height', height)
+    
+/*
+var svg = d3.select("svg"),
+    width = +svg.attr("width"),
+    height = +svg.attr("height");
+*/
+var color = d3.scaleOrdinal(d3.schemeCategory20);
+
+var simulation = d3.forceSimulation()
+    .force("link", d3.forceLink().id(function(d) { return d.id; }))
+    .force("charge", d3.forceManyBody().strength(-30))
+    .force("center", d3.forceCenter(width / 2, height / 2));
+
+d3.json(url, function(error, graph) {
+  if (error) throw error;
+
+  let added = []
+
+  var link = svg.append("g")
+      .attr("class", "links")
+    .selectAll("line")
+    .data(graph.links)
+    .enter().append("line")
+      .attr("stroke-width", function(d) { return Math.sqrt(d.value); });
+
+  var node = svg.append("g")
+      .attr("class", "nodes")
+    .selectAll("circle")
+    .data(graph.nodes)
+    .enter().append("circle")
+      .attr("r", function(d) { return Math.sqrt(d.r); })
+      .attr("fill", function(d) { 
+        let exists = false;
+        for(let i = 0; i<added.length;i++){
+          if(d.group == added[i])
+            exists=true;
+        }
+        if(!exists){
+          added.push(d.group)
+          document.querySelector('#keys').innerHTML+=
+          "<table><tr><td><div class='hex' style='background:"+color(d.group)+"'></td><td>" + graph.sector_names[d.group]+ 
+          "</td></tr></table>";
+        }
+        return color(d.group); 
+      })
+      .call(d3.drag()
+          .on("start", dragstarted)
+          .on("drag", dragged)
+          .on("end", dragended));
+
+  var text = svg.append('g')
+      .selectAll('text')
+      .data(graph.nodes)
+      .enter().append('text')
+        .text(function(d) { return d.label; })
+        .attr('font-size', 11)
+        .attr('font-family',"system-ui")
+        .attr('dx', 15)
+        .attr('dy', 4)
+
+  node.append("title")
+      .text(function(d) { return d.id; });
+  
+
+  simulation
+      .nodes(graph.nodes)
+      .on("tick", ticked);
+
+  simulation.force("link")
+      .links(graph.links);
+
+  function ticked() {
+    link
+        .attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; });
+
+    node
+        .attr("cx", function(d) { return d.x; })
+        .attr("cy", function(d) { return d.y; });
+    text
+        .attr("dx", function(d) { return d.x; })
+        .attr("dy", function(d) { return d.y; });
+
+  }
+
+  //Attempt for Interactivity
+  // function getNeighbors(node) {
+  //   return links.reduce((neighbors, link) => {
+  //     if (link.target.id === node.id) {
+  //       neighbors.push(link.source.id)
+  //     } else if (link.source.id === node.id) {
+  //       neighbors.push(link.target.id)
+  //     }
+  //     return neighbors
+  //   }, [node.id])
+  // }
+  // function isNeighborLink(node, link) {
+  //   return link.target.id === node.id || link.source.id === node.id
+  // }
+
+  function selectNode(selectedNode) {
+    document.getElementById("p1").innerHTML = "Ticker: " + selectedNode.label;
+    document.getElementById("p2").innerHTML = "Degrees: " + selectedNode.r;
+    document.getElementById("p3").innerHTML = "Industry: " + selectedNode.group
+  }
+  node.on('click', selectNode)
+
+  //Function for the Fisheye View
+  svg.on("mousemove", function() {
+    fisheye.focus(d3.mouse(this));
+
+    node.each(function(d) { d.fisheye = fisheye(d); })
+        .attr("cx", function(d) { return d.fisheye.x; })
+        .attr("cy", function(d) { return d.fisheye.y; })
+        .attr("r", function(d) { return d.fisheye.z * 4.5; });
+
+    link.attr("x1", function(d) { return d.source.fisheye.x; })
+        .attr("y1", function(d) { return d.source.fisheye.y; })
+        .attr("x2", function(d) { return d.target.fisheye.x; })
+        .attr("y2", function(d) { return d.target.fisheye.y; });
+
+    link.attr("font-size", function(d) { return d.radius; })
+  });
+});
+
+function dragstarted(d) {
+  if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+  d.fx = d.x;
+  d.fy = d.y;
+}
+
+function dragged(d) {
+  d.fx = d3.event.x;
+  d.fy = d3.event.y;
+}
+
+function dragended(d) {
+  if (!d3.event.active) simulation.alphaTarget(0);
+  d.fx = null;
+  d.fy = null;
+}
+
+// The following code is for implementing Fisheye
+
+(function() {
+  d3.fisheye = {
+    scale: function(scaleType) {
+      return d3_fisheye_scale(scaleType(), 3, 0);
+    },
+    circular: function() {
+      var radius = 200,
+          distortion = 2,
+          k0,
+          k1,
+          focus = [0, 0];
+
+      function fisheye(d) {
+        var dx = d.x - focus[0],
+            dy = d.y - focus[1],
+            dd = Math.sqrt(dx * dx + dy * dy);
+        if (!dd || dd >= radius) return {x: d.x, y: d.y, z: dd >= radius ? 0.5*d.r: 0.4*d.r};
+        var k = k0 * (1 - Math.exp(-dd * k1)) / dd * .75 + .25;
+        return {x: focus[0] + dx * k, y: focus[1] + dy * k, z: Math.min(Math.sqrt(k)*d.r, d.r)};
+      }
+
+      function rescale() {
+        k0 = Math.exp(distortion);
+        k0 = k0 / (k0 - 1) * radius;
+        k1 = distortion / radius;
+        return fisheye;
+      }
+
+      fisheye.radius = function(_) {
+        if (!arguments.length) return radius;
+        radius = +_;
+        return rescale();
+      };
+
+      fisheye.distortion = function(_) {
+        if (!arguments.length) return distortion;
+        distortion = +_;
+        return rescale();
+      };
+
+      fisheye.focus = function(_) {
+        if (!arguments.length) return focus;
+        focus = _;
+        return fisheye;
+      };
+
+      return rescale();
+    }
+  };
+
+  function d3_fisheye_scale(scale, d, a) {
+
+    function fisheye(_) {
+      var x = scale(_),
+          left = x < a,
+          range = d3.extent(scale.range()),
+          min = range[0],
+          max = range[1],
+          m = left ? a - min : max - a;
+      if (m == 0) m = max - min;
+      return (left ? -1 : 1) * m * (d + 1) / (d + (m / Math.abs(x - a))) + a;
+    }
+
+    fisheye.distortion = function(_) {
+      if (!arguments.length) return d;
+      d = +_;
+      return fisheye;
+    };
+
+    fisheye.focus = function(_) {
+      if (!arguments.length) return a;
+      a = +_;
+      return fisheye;
+    };
+
+    fisheye.copy = function() {
+      return d3_fisheye_scale(scale.copy(), d, a);
+    };
+
+    fisheye.nice = scale.nice;
+    fisheye.ticks = scale.ticks;
+    fisheye.tickFormat = scale.tickFormat;
+    return d3.rebind(fisheye, scale, "domain", "range");
+  }
+})();
+
+var fisheye = d3.fisheye.circular()
+    .radius(100)
+    .distortion(2);
+  }
+  lists = ['static/modified_peers.json', 'static/m3dji.json', 'static/m6nas.json']
+  btnTexts = ['DJI', 'NAS', 'S&P 500'];
+  let curr=-1;
+
+  function swap(){
+    curr++;
+    curr%=lists.length;
+    load(lists[curr]);
+    document.querySelector('button').innerText=btnTexts[curr];
+    document.querySelector('#ind').innerText=btnTexts[(curr + 5) % 3];
+    document.querySelector('#p1').innerText="Click a node!";
+    document.querySelector('#p2').innerText=" ";
+    document.querySelector('#p3').innerText=" ";
+    document.querySelector('#keys').innerText=" ";
+    setTimeout(function(){
+    let texts = document.querySelectorAll('text');
+    for(let i=0;i<texts.length;i++){
+      texts[i].style.pointerEvents='none';
+    }
+    }, 1000)
+  }
+  swap();
+</script>
